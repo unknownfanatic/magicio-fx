@@ -7,17 +7,23 @@ jobs:
   notify:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout commit
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.deployment.sha }}
+          fetch-depth: 1
+
       - name: Send Discord notification
         env:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_URL }}
         run: |
           STATE="${{ github.event.deployment_status.state }}"
           URL="${{ github.event.deployment_status.environment_url }}"
-          COMMIT_SHA="${{ github.event.deployment.sha }}"
-          COMMIT_MSG=$(git log -1 --format=%s "$COMMIT_SHA" 2>/dev/null || echo "N/A")
-          AUTHOR="${{ github.event.deployment.creator.login }}"
-          REF="${{ github.event.deployment.ref }}"
           REPO="${{ github.repository }}"
+
+          COMMIT_MSG=$(git log -1 --format=%s)
+          COMMIT_AUTHOR=$(git log -1 --format=%an)
+          SHORT_SHA=$(git log -1 --format=%h)
 
           if [ "$STATE" = "success" ]; then
             COLOR=3066993
@@ -37,9 +43,9 @@ jobs:
                 \"color\": $COLOR,
                 \"fields\": [
                   { \"name\": \"Repo\", \"value\": \"$REPO\", \"inline\": true },
-                  { \"name\": \"Branch\", \"value\": \"$REF\", \"inline\": true },
-                  { \"name\": \"Author\", \"value\": \"$AUTHOR\", \"inline\": true },
-                  { \"name\": \"Commit\", \"value\": \"$COMMIT_MSG\" },
+                  { \"name\": \"Commit\", \"value\": \"$SHORT_SHA\", \"inline\": true },
+                  { \"name\": \"Author\", \"value\": \"$COMMIT_AUTHOR\", \"inline\": true },
+                  { \"name\": \"Message\", \"value\": \"$COMMIT_MSG\" },
                   { \"name\": \"URL\", \"value\": \"$URL\" }
                 ]
               }]
