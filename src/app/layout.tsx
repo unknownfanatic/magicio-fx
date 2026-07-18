@@ -3,9 +3,8 @@ import type { Metadata } from 'next';
 import '../styles/index.css';
 
 export const metadata: Metadata = {
-  title: 'Start app development (Copy)',
-  description:
-    'Enables users to execute Go code snippets instantly in a browser, facilitating learning and quick testing without setup or installation.',
+  title: "Magicio.fx",  
+  description: "Transforming raw footage into cinematic content that captures attention and drives results.",
   robots: {
     index: false,
     follow: false,

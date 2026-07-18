@@ -1,0 +1,47 @@
+name: Discord Deploy Notification
+
+on:
+  deployment_status:
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send Discord notification
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: |
+          STATE="${{ github.event.deployment_status.state }}"
+          URL="${{ github.event.deployment_status.environment_url }}"
+          COMMIT_SHA="${{ github.event.deployment.sha }}"
+          COMMIT_MSG=$(git log -1 --format=%s "$COMMIT_SHA" 2>/dev/null || echo "N/A")
+          AUTHOR="${{ github.event.deployment.creator.login }}"
+          REF="${{ github.event.deployment.ref }}"
+          REPO="${{ github.repository }}"
+
+          if [ "$STATE" = "success" ]; then
+            COLOR=3066993
+            TITLE="✅ Deployment succeeded"
+          elif [ "$STATE" = "failure" ] || [ "$STATE" = "error" ]; then
+            COLOR=15158332
+            TITLE="❌ Deployment failed"
+          else
+            COLOR=15844367
+            TITLE="🔄 Deployment $STATE"
+          fi
+
+          curl -H "Content-Type: application/json" \
+            -d "{
+              \"embeds\": [{
+                \"title\": \"$TITLE\",
+                \"color\": $COLOR,
+                \"fields\": [
+                  { \"name\": \"Repo\", \"value\": \"$REPO\", \"inline\": true },
+                  { \"name\": \"Branch\", \"value\": \"$REF\", \"inline\": true },
+                  { \"name\": \"Author\", \"value\": \"$AUTHOR\", \"inline\": true },
+                  { \"name\": \"Commit\", \"value\": \"$COMMIT_MSG\" },
+                  { \"name\": \"URL\", \"value\": \"$URL\" }
+                ]
+              }]
+            }" \
+            "$DISCORD_WEBHOOK"
