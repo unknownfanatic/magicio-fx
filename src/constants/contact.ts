@@ -4,7 +4,7 @@ export const contactInfoData: ContactInfoItem[] = [
   {
     iconKey: 'mail',
     label: 'Email',
-    value: 'hello@magicio.fx'
+    value: 'magicio.fxofficial2618@gmail.com'
   },
   {
     iconKey: 'phone',
